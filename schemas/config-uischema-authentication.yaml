@@ -1,0 +1,4 @@
+- jsonKey: username
+  uiType: Input
+- jsonKey: password
+  uiType: Input

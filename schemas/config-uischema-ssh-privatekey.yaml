@@ -1,0 +1,2 @@
+- jsonKey: sshPrivateKey
+  uiType: CertBase64

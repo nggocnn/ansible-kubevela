@@ -1,0 +1,252 @@
+- sort: 100
+  label: SourceInventory
+  description: Path of inventory file in source
+  validate:
+    required: true
+    defaultValue: inventory
+    immutable: false
+  jsonKey: sourceInventory
+  uiType: Input
+- sort: 101
+  label: SourcePlaybook
+  description: Path of playbook file in source
+  validate:
+    required: true
+    defaultValue: playbook.yaml
+    immutable: false
+  jsonKey: sourcePlaybook
+  uiType: Input
+- sort: 102
+  label: SshKeyRef
+  description: Secret contain SSH private key for remote VMs
+  validate:
+    required: true
+    immutable: false
+  jsonKey: sshKeyRef
+  uiType: SecretSelect
+- sort: 103
+  label: Git
+  description: ''
+  validate:
+    required: true
+    immutable: false
+  jsonKey: git
+  uiType: Group
+  subParameters:
+    - sort: 100
+      label: Url
+      description: The Git repository URL
+      validate:
+        required: true
+        immutable: false
+      jsonKey: url
+      uiType: Input
+    - sort: 101
+      label: Branch
+      description: >-
+        The Git branch to checkout and monitor for changes, defaults to main
+        branch
+      validate:
+        defaultValue: main
+        immutable: false
+      jsonKey: branch
+      uiType: Input
+    - sort: 102
+      label: SecretRef
+      description: >-
+        The name of the secret containing authentication credentials for Git
+        Repository
+      validate:
+        immutable: false
+      jsonKey: secretRef
+      uiType: SecretSelect
+    - sort: 103
+      label: Tag
+      description: >-
+        The Git tag to checkout and monitor for changes, takes precedence over
+        branch
+      validate:
+        immutable: false
+      jsonKey: tag
+      uiType: Input
+- sort: 104
+  label: Annotations
+  description: Specify the annotations in the workload
+  validate:
+    immutable: false
+  jsonKey: annotations
+  uiType: KV
+  additionalParameter:
+    sort: 100
+    label: ''
+    description: ''
+    validate:
+      immutable: false
+    jsonKey: ''
+    uiType: Input
+  additional: true
+- sort: 105
+  label: AnsibleCollections
+  description: Ansible collection requirements file
+  validate:
+    immutable: false
+  jsonKey: ansibleCollections
+  uiType: Input
+- sort: 106
+  label: Cpu
+  description: >-
+    Number of CPU units for the service, like `0.5` (0.5 CPU core), `1` (1 CPU
+    core)
+  validate:
+    immutable: false
+  jsonKey: cpu
+  uiType: Input
+- sort: 107
+  label: ExtraArguments
+  description: Add extra arguments to ansible-playbook command
+  validate:
+    immutable: false
+  jsonKey: extraArguments
+  uiType: Strings
+- sort: 108
+  label: ImagePullPolicy
+  description: Specify image pull policy for your service
+  validate:
+    options:
+      - label: IfNotPresent
+        value: IfNotPresent
+      - label: Always
+        value: Always
+      - label: Never
+        value: Never
+    defaultValue: IfNotPresent
+    immutable: false
+  jsonKey: imagePullPolicy
+  uiType: Select
+- sort: 109
+  label: ImagePullSecrets
+  description: Specify image pull secrets for your service
+  validate:
+    immutable: false
+  jsonKey: imagePullSecrets
+  uiType: Strings
+- sort: 110
+  label: Labels
+  description: Specify the labels in the workload
+  validate:
+    immutable: false
+  jsonKey: labels
+  uiType: KV
+  additionalParameter:
+    sort: 100
+    label: ''
+    description: ''
+    validate:
+      immutable: false
+    jsonKey: ''
+    uiType: Input
+  additional: true
+- sort: 111
+  label: Memory
+  description: Specifies the attributes of the memory resource required for the container.
+  validate:
+    immutable: false
+  jsonKey: memory
+  uiType: Input
+- sort: 112
+  label: RestartPolicy
+  description: >-
+    Define the job restart policy, the value can only be Never or OnFailure. By
+    default, it's Never.
+  validate:
+    options:
+      - label: Never
+        value: Never
+      - label: OnFailure
+        value: OnFailure
+    defaultValue: Never
+    immutable: false
+  jsonKey: restartPolicy
+  uiType: Select
+- sort: 113
+  label: Env
+  description: Define arguments by using environment variables
+  validate:
+    immutable: false
+  jsonKey: env
+  uiType: Structs
+  subParameters:
+    - sort: 100
+      label: Name
+      description: Environment variable name
+      validate:
+        required: true
+        immutable: false
+      jsonKey: name
+      uiType: Input
+    - sort: 101
+      label: Value
+      description: The value of the environment variable
+      validate:
+        immutable: false
+      jsonKey: value
+      uiType: Input
+    - sort: 102
+      label: ValueFrom
+      description: Specifies a source the value of this var should come from
+      validate:
+        immutable: false
+      jsonKey: valueFrom
+      uiType: Group
+      subParameters:
+        - sort: 100
+          label: ConfigMapKeyRef
+          description: Selects a key of a config map in the pod's namespace
+          validate:
+            immutable: false
+          jsonKey: configMapKeyRef
+          uiType: Group
+          subParameters:
+            - sort: 100
+              label: Name
+              description: The name of the config map in the pod's namespace to select from
+              validate:
+                required: true
+                immutable: false
+              jsonKey: name
+              uiType: Input
+            - sort: 101
+              label: Key
+              description: >-
+                The key of the config map to select from. Must be a valid secret
+                key
+              validate:
+                required: true
+                immutable: false
+              jsonKey: key
+              uiType: Input
+        - sort: 101
+          label: SecretKeyRef
+          description: Selects a key of a secret in the pod's namespace
+          validate:
+            immutable: false
+          jsonKey: secretKeyRef
+          uiType: Group
+          subParameters:
+            - sort: 100
+              label: Name
+              description: The name of the secret in the pod's namespace to select from
+              validate:
+                required: true
+                immutable: false
+              jsonKey: name
+              uiType: SecretSelect
+            - sort: 101
+              label: Key
+              description: The key of the secret to select from. Must be a valid secret key
+              validate:
+                required: true
+                immutable: false
+              jsonKey: key
+              uiType: SecretKeySelect
+            
