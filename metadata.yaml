@@ -1,7 +1,7 @@
 description: An addon for KubeVela.
-icon: ""
+icon: ''
 invisible: false
 name: ansible
 tags:
-- idp
+  - idp
 version: 1.0.0

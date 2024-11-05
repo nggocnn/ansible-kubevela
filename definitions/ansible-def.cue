@@ -6,15 +6,15 @@ ansible: {
 	labels: {}
 	description: "Ansible Component create K8s Job to run Ansible playbook from Git Repository"
 	attributes: {
-        workload: {
-            definition: {
-                apiVersion: "batch/v1"
-                kind: "Job"
-            }
-            type: "jobs.batch"
-        }
-        status: {
-            customStatus: #"""
+		workload: {
+			definition: {
+				apiVersion: "batch/v1"
+				kind:       "Job"
+			}
+			type: "jobs.batch"
+		}
+		status: {
+			customStatus: #"""
 				status: {
 					active:    *0 | int
 					failed:    *0 | int
@@ -39,16 +39,16 @@ ansible: {
 				}
 				isHealth: succeeded == context.output.spec.parallelism
 				"""#
-        }
-    }
+		}
+	}
 }
 
 template: {
 	output: {
-        apiVersion: "batch/v1"
-        kind: "Job"
-        spec: {
-            backoffLimit: 0
+		apiVersion: "batch/v1"
+		kind:       "Job"
+		spec: {
+			backoffLimit: 0
 			template: {
 				metadata: {
 					labels: {
@@ -62,213 +62,212 @@ template: {
 						annotations: parameter.annotations
 					}
 				}
-                spec: {
-                    restartPolicy: *parameter.restartPolicy | "Never"
-                    containers: [{
-                        name: context.name
-                        image: "nggocnn/ansible-playbook:v0.1"
+				spec: {
+					restartPolicy: *parameter.restartPolicy | "Never"
+					containers: [{
+						name:  context.name
+						image: "nggocnn/ansible-playbook:v0.1"
 
-                        if parameter.imagePullPolicy != _|_ {
+						if parameter.imagePullPolicy != _|_ {
 							imagePullPolicy: parameter.imagePullPolicy
 						}
 
-                        if parameter.imagePullSecrets != _|_ {
-                            imagePullSecrets:[
-                                for secret in parameter.imagePullSecrets {
-                                    name: secret
-                                },
-                            ]
-                        }
+						if parameter.imagePullSecrets != _|_ {
+							imagePullSecrets: [
+								for secret in parameter.imagePullSecrets {
+									name: secret
+								},
+							]
+						}
 
-                        command: ["/bin/sh", "-c"]
+						command: ["/bin/sh", "-c"]
 
-                        args: _setupCommands
-                        
-                        if parameter.env != _|_ {
+						args: _setupCommands
+
+						if parameter.env != _|_ {
 							env: parameter.env
 						}
-                        
-                        resources: {
-                            limits: {
-                                if parameter.cpu != _|_ {
-                                    cpu: parameter.cpu
-                                }
-                                if parameter.memory != _|_ {
-                                    memory: parameter.memory
-                                }
-                            }
-                            requests: {
-                                if parameter.cpu != _|_ {
-                                    cpu: parameter.cpu
-                                }
-                                if parameter.memory != _|_ {
-                                    memory: parameter.memory
-                                }
-                            }
-                        }
 
-                        volumeMounts: [
-                            {   
-                                name: "ansible-source"
-                                mountPath: "/workspace/ansible"
-                            },
-                            if parameter.sshKeyRef != _|_ {
-                                {
-                                    name: "sshkey"
-                                    mountPath: "/workspace/sshkey"
-                                }
-                            }
-                        ]
-                    }]
-                    initContainers: [{
-                        name: "git-clone"
-                        image: "alpine/git:latest"
+						resources: {
+							limits: {
+								if parameter.cpu != _|_ {
+									cpu: parameter.cpu
+								}
+								if parameter.memory != _|_ {
+									memory: parameter.memory
+								}
+							}
+							requests: {
+								if parameter.cpu != _|_ {
+									cpu: parameter.cpu
+								}
+								if parameter.memory != _|_ {
+									memory: parameter.memory
+								}
+							}
+						}
 
-                        if parameter.imagePullPolicy != _|_ {
+						volumeMounts: [
+							{
+								name:      "ansible-source"
+								mountPath: "/workspace/ansible"
+							},
+							if parameter.sshKeyRef != _|_ {
+								{
+									name:      "sshkey"
+									mountPath: "/workspace/sshkey"
+								}
+							},
+						]
+					}]
+					initContainers: [{
+						name:  "git-clone"
+						image: "alpine/git:latest"
+
+						if parameter.imagePullPolicy != _|_ {
 							imagePullPolicy: parameter.imagePullPolicy
 						}
 
-                        if parameter.imagePullSecrets != _|_ {
-                            imagePullSecrets:[
-                                for secret in parameter.imagePullSecrets {
-                                    name: secret
-                                },
-                            ]
-                        }
+						if parameter.imagePullSecrets != _|_ {
+							imagePullSecrets: [
+								for secret in parameter.imagePullSecrets {
+									name: secret
+								},
+							]
+						}
 
-                        command: ["/bin/sh", "-c"]
-                        
-                        args: [
-                            _gitCloneCommands
-                        ]
+						command: ["/bin/sh", "-c"]
 
-                        if parameter.git.secretRef != _|_ {
-                            env: [
-                                {
-                                    name: "GIT_ACCESS_TOKEN"
-                                    valueFrom: {
-                                        secretKeyRef: {
-                                            name: parameter.git.secretRef
-                                            key: "password"
-                                        }
-                                    }
-                                },
-                            ]
-                        }
+						args: [
+							_gitCloneCommands,
+						]
 
-                        volumeMounts: [
-                            {
-                                name: "ansible-source"
-                                mountPath: "/workspace/ansible"
-                            }
-                        ]
-                    }]
-                    volumes: [
-                        {
-                            name: "ansible-source"
-                            emptyDir: {}
-                        },
-                        if parameter.sshKeyRef != _|_ {
-                            {
-                                name: "sshkey"
-                                secret: {
-                                    secretName: parameter.sshKeyRef
-                                }
-                            }   
-                        },
-                    ]
-                }
-            }
-        }
-    }
+						if parameter.git.secretRef != _|_ {
+							env: [
+								{
+									name: "GIT_ACCESS_TOKEN"
+									valueFrom: {
+										secretKeyRef: {
+											name: parameter.git.secretRef
+											key:  "password"
+										}
+									}
+								},
+							]
+						}
 
-    _ansiblePlaybookBaseCommand: [
-        "ansible-playbook",
-        "\(parameter.sourcePlaybook)",
-        "-i \(parameter.sourceInventory)",
-        "--private-key /workspace/ansible/ssh-privatekey",
-    ]
+						volumeMounts: [
+							{
+								name:      "ansible-source"
+								mountPath: "/workspace/ansible"
+							},
+						]
+					}]
+					volumes: [
+						{
+							name: "ansible-source"
+							emptyDir: {}
+						},
+						if parameter.sshKeyRef != _|_ {
+							{
+								name: "sshkey"
+								secret: {
+									secretName: parameter.sshKeyRef
+								}
+							}
+						},
+					]
+				}
+			}
+		}
+	}
 
-    _ansiblePlaybookCommand: *strings.Join(_ansiblePlaybookBaseCommand, " ") | string
-    if parameter.extraArguments != _|_ {
-        _ansiblePlaybookCommand: strings.Join(_ansiblePlaybookBaseCommand + parameter.extraArguments, " ")
-    }
+	_ansiblePlaybookBaseCommand: [
+		"ansible-playbook",
+		"\(parameter.sourcePlaybook)",
+		"-i \(parameter.sourceInventory)",
+		"--private-key /workspace/ansible/ssh-privatekey",
+	]
 
-    _setupCommands: [
-        strings.Join([
-            "base64 -d /workspace/sshkey/ssh-privatekey-base64 > /workspace/ansible/ssh-privatekey",
-            "chmod 0400 /workspace/ansible/ssh-privatekey",
-            if parameter.ansibleCollections != _|_ {
-                "if [ -f \(parameter.ansibleCollections) ]; then ansible-galaxy collection install -r \(parameter.ansibleCollections); fi"
-            },
-            _ansiblePlaybookCommand,
-        ], " && ")
-    ]
+	_ansiblePlaybookCommand: *strings.Join(_ansiblePlaybookBaseCommand, " ") | string
+	if parameter.extraArguments != _|_ {
+		_ansiblePlaybookCommand: strings.Join(_ansiblePlaybookBaseCommand+parameter.extraArguments, " ")
+	}
 
-    // Handle Git URL
-    _gitUrl: *parameter.git.url | string
+	_setupCommands: [
+		strings.Join([
+			"base64 -d /workspace/sshkey/ssh-privatekey-base64 > /workspace/ansible/ssh-privatekey",
+			"chmod 0400 /workspace/ansible/ssh-privatekey",
+			if parameter.ansibleCollections != _|_ {
+				"if [ -f \(parameter.ansibleCollections) ]; then ansible-galaxy collection install -r \(parameter.ansibleCollections); fi"
+			},
+			_ansiblePlaybookCommand,
+		], " && "),
+	]
 
-    if parameter.git.secretRef != _|_ {
-        if parameter.git.secretRef != "" {
-            _gitUrl: "https://oauth2:$(echo -n $GIT_ACCESS_TOKEN)@\(strings.TrimPrefix(parameter.git.url, "https://"))"
-        }
-    }
+	// Handle Git URL
+	_gitUrl: *parameter.git.url | string
 
-    // Handle Git clone based on precedence of tag and branch
-    _gitCloneCommands: *"git clone \(_gitUrl) /workspace/ansible" | string
+	if parameter.git.secretRef != _|_ {
+		if parameter.git.secretRef != "" {
+			_gitUrl: "https://oauth2:$(echo -n $GIT_ACCESS_TOKEN)@\(strings.TrimPrefix(parameter.git.url, "https://"))"
+		}
+	}
 
-    // If tag is provided, clone the specific tag (takes precedence over branch)
-    // Tried to simplify this condition expression, but velaux can not render it :'(
-    // Sorry, I'm not sure why
-    if parameter.git.tag != _|_ {
-        if parameter.git.branch != _|_ {
-            if parameter.git.branch != "" {
-                _gitCloneCommands: *"git clone --branch \(parameter.git.branch) \(_gitUrl) /workspace/ansible" | string
-            }
-        }
-        if parameter.git.tag != "" {
-            _gitCloneCommands: "git clone --branch \(parameter.git.tag) \(_gitUrl) /workspace/ansible"
-        }
-    }
+	// Handle Git clone based on precedence of tag and branch
+	_gitCloneCommands: *"git clone \(_gitUrl) /workspace/ansible" | string
 
-    // If no tag is provided, use the branch (defaults to main)
-    if parameter.git.tag == _|_ {
-        if parameter.git.branch != _|_ {
-            if parameter.git.branch != "" {
-                _gitCloneCommands: "git clone --branch \(parameter.git.branch) \(_gitUrl) /workspace/ansible"
-            }
-        }
-    }
-    
+	// If tag is provided, clone the specific tag (takes precedence over branch)
+	// Tried to simplify this condition expression, but velaux can not render it :'(
+	// Sorry, I'm not sure why
+	if parameter.git.tag != _|_ {
+		if parameter.git.branch != _|_ {
+			if parameter.git.branch != "" {
+				_gitCloneCommands: *"git clone --branch \(parameter.git.branch) \(_gitUrl) /workspace/ansible" | string
+			}
+		}
+		if parameter.git.tag != "" {
+			_gitCloneCommands: "git clone --branch \(parameter.git.tag) \(_gitUrl) /workspace/ansible"
+		}
+	}
+
+	// If no tag is provided, use the branch (defaults to main)
+	if parameter.git.tag == _|_ {
+		if parameter.git.branch != _|_ {
+			if parameter.git.branch != "" {
+				_gitCloneCommands: "git clone --branch \(parameter.git.branch) \(_gitUrl) /workspace/ansible"
+			}
+		}
+	}
 
 	parameter: {
-        // +usage=Specify the labels in the workload
+		// +usage=Specify the labels in the workload
 		labels?: [string]: string
 
 		// +usage=Specify the annotations in the workload
 		annotations?: [string]: string
 
-        // +usage=Specify image pull policy for your service
+		// +usage=Specify image pull policy for your service
 		imagePullPolicy?: *"IfNotPresent" | "Always" | "Never"
 
-        // +usage=Specify image pull secrets for your service
+		// +usage=Specify image pull secrets for your service
 		imagePullSecrets?: [...string]
 
-        // +usage=Define the job restart policy, the value can only be Never or OnFailure. By default, it's Never.
+		// +usage=Define the job restart policy, the value can only be Never or OnFailure. By default, it's Never.
 		restartPolicy?: *"Never" | "OnFailure"
 
-        git: {
-            // +usage=The Git repository URL
-            url: string
-            // +usage=The Git branch to checkout and monitor for changes, defaults to main branch
-            branch?: *"main" | string
-            // +usage=The Git tag to checkout and monitor for changes, takes precedence over branch
+		git: {
+			// +usage=The Git repository URL
+			url: string
+			// +usage=The Git branch to checkout and monitor for changes, defaults to main branch
+			branch?: *"main" | string
+			// +usage=The Git tag to checkout and monitor for changes, takes precedence over branch
 			tag?: string
-            // +usage=The name of the secret containing authentication credentials for Git Repository
-            secretRef?: string
-        }
+			// +usage=The name of the secret containing authentication credentials for Git Repository
+			secretRef?: string
+		}
 
-        // +usage=Define arguments by using environment variables
+		// +usage=Define arguments by using environment variables
 		env?: [...{
 			// +usage=Environment variable name
 			name: string
@@ -293,25 +292,25 @@ template: {
 			}
 		}]
 
-        // +usage=Number of CPU units for the service, like `0.5` (0.5 CPU core), `1` (1 CPU core)
+		// +usage=Number of CPU units for the service, like `0.5` (0.5 CPU core), `1` (1 CPU core)
 		cpu?: string
 
 		// +usage=Specifies the attributes of the memory resource required for the container.
 		memory?: string
 
-        // +usage=Path of playbook file in source
-        sourcePlaybook: *"playbook.yaml" | string
+		// +usage=Path of playbook file in source
+		sourcePlaybook: *"playbook.yaml" | string
 
-        // +usage=Path of inventory file in source
-        sourceInventory: *"inventory" | string
+		// +usage=Path of inventory file in source
+		sourceInventory: *"inventory" | string
 
-        // +usage=Add extra arguments to ansible-playbook command
-        extraArguments?: [...string]
+		// +usage=Add extra arguments to ansible-playbook command
+		extraArguments?: [...string]
 
-        // +usage=Secret contain SSH private key for remote VMs
-        sshKeyRef: string
+		// +usage=Secret contain SSH private key for remote VMs
+		sshKeyRef: string
 
-        // +usage=Ansible collection requirements file
-        ansibleCollections?: string
-    }
+		// +usage=Ansible collection requirements file
+		ansibleCollections?: string
+	}
 }
