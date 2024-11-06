@@ -33,30 +33,29 @@
   jsonKey: osPlatform
   uiType: Select
 - sort: 103
-  label: SshKeyRef
-  description: Secret contain SSH private key for remote VMs. Private SSH Key will take over Basic (username/password) authentication.
+  label: AuthConfig
+  description: Authentication for Ansible used to connect to remote VMs
   validate:
+    required: true
     immutable: false
-  jsonKey: sshKeyRef
-  uiType: SecretSelect
-  conditions:
-    - jsonKey: osPlatform
-      op: '=='
-      value: 'linux'
+  jsonKey: authConfig
+  uiType: Group
+  subParameters:
+    - sort: 101
+      label: SshKeyRef
+      description: Secret contain SSH private key for remote VMs. Private SSH Key will take over Basic (username/password) authentication.
+      validate:
+        immutable: false
+      jsonKey: sshKeyRef
+      uiType: SecretSelect
+    - sort: 102
+      label: BasicAuthRef
+      description: Secret contain username and password for remote VMs
+      validate:
+        immutable: false
+      jsonKey: basicAuthRef
+      uiType: Input
 - sort: 104
-  label: BasicAuthRef
-  description: Secret contain username and password for remote VMs
-  validate:
-    immutable: false
-  jsonKey: basicAuthRef
-  uiType: Input
-  conditions:
-    - jsonKey: osPlatform
-      op: in
-      value: 
-        - linux
-        - windows
-- sort: 105
   label: Git
   description: ''
   validate:
@@ -101,21 +100,21 @@
         immutable: false
       jsonKey: tag
       uiType: Input
-- sort: 106
+- sort: 105
   label: AnsibleCollections
   description: Ansible collection requirements file
   validate:
     immutable: false
   jsonKey: ansibleCollections
   uiType: Input
-- sort: 107
+- sort: 106
   label: ExtraArguments
   description: Add extra arguments to ansible-playbook command
   validate:
     immutable: false
   jsonKey: extraArguments
   uiType: Strings
-- sort: 108
+- sort: 107
   label: Env
   description: Define arguments by using environment variables
   validate:
@@ -196,7 +195,7 @@
                 immutable: false
               jsonKey: key
               uiType: SecretKeySelect
-- sort: 109
+- sort: 108
   label: ImagePullPolicy
   description: Specify image pull policy for your service
   validate:
@@ -211,14 +210,14 @@
     immutable: false
   jsonKey: imagePullPolicy
   uiType: Select
-- sort: 110
+- sort: 109
   label: ImagePullSecrets
   description: Specify image pull secrets for your service
   validate:
     immutable: false
   jsonKey: imagePullSecrets
   uiType: Strings
-- sort: 111
+- sort: 110
   label: Labels
   description: Specify the labels in the workload
   validate:
@@ -234,7 +233,7 @@
     jsonKey: ''
     uiType: Input
   additional: true
-- sort: 112
+- sort: 111
   label: Annotations
   description: Specify the annotations in the workload
   validate:
@@ -250,7 +249,7 @@
     jsonKey: ''
     uiType: Input
   additional: true
-- sort: 113
+- sort: 112
   label: Cpu
   description: >-
     Number of CPU units for the service, like `0.5` (0.5 CPU core), `1` (1 CPU
@@ -259,14 +258,14 @@
     immutable: false
   jsonKey: cpu
   uiType: Input
-- sort: 114
+- sort: 113
   label: Memory
   description: Specifies the attributes of the memory resource required for the container.
   validate:
     immutable: false
   jsonKey: memory
   uiType: Input
-- sort: 115
+- sort: 114
   label: RestartPolicy
   description: >-
     Define the job restart policy, the value can only be Never or OnFailure. By

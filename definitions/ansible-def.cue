@@ -84,9 +84,7 @@ template: {
 
 						args: _setupCommands
 
-						if parameter.env != _|_ {
-							env: parameter.env
-						}
+						env: _ansibleContainerEnv
 
 						resources: {
 							limits: {
@@ -112,7 +110,7 @@ template: {
 								name:      "ansible-source"
 								mountPath: "/workspace/ansible"
 							},
-							if parameter.sshKeyRef != _|_ {
+							if parameter.authConfig.sshKeyRef != _|_ {
 								{
 									name:      "sshkey"
 									mountPath: "/workspace/sshkey"
@@ -186,7 +184,12 @@ template: {
 		"ansible-playbook",
 		"\(parameter.sourcePlaybook)",
 		"-i \(parameter.sourceInventory)",
-		"--private-key /workspace/ansible/ssh-privatekey",
+		if parameter.authConfig.sshKeyRef != _|_ {
+			"--private-key /workspace/ansible/ssh-privatekey"
+		},
+		if parameter.authConfig.basicAuthRef != _|_ {
+			"-u $ANSIBLE_USER --extra-vars ansible_password=$ANSIBLE_PASSWORD"
+		},
 	]
 
 	_ansiblePlaybookCommand: *strings.Join(_ansiblePlaybookBaseCommand, " ") | string
@@ -196,8 +199,9 @@ template: {
 
 	_setupCommands: [
 		strings.Join([
-			"base64 -d /workspace/sshkey/ssh-privatekey-base64 > /workspace/ansible/ssh-privatekey",
-			"chmod 0400 /workspace/ansible/ssh-privatekey",
+			if parameter.sshKeyRef != _|_ {
+				"base64 -d /workspace/sshkey/ssh-privatekey-base64 > /workspace/ansible/ssh-privatekey && chmod 0400 /workspace/ansible/ssh-privatekey"
+			},
 			if parameter.ansibleCollections != _|_ {
 				"if [ -f \(parameter.ansibleCollections) ]; then ansible-galaxy collection install -r \(parameter.ansibleCollections); fi"
 			},
@@ -239,6 +243,34 @@ template: {
 			}
 		}
 	}
+
+	_ansibleContainerEnv: [
+		if parameter.authConfig.basicAuthRef != _|_ {
+			{
+				name: "ANSIBLE_USER"
+				valueFrom: {
+					secretKeyRef: {
+						name: parameter.authConfig.basicAuthRef
+						key: "username"
+					}
+				}
+			}
+		},
+		if parameter.authConfig.basicAuthRef != _|_ {
+			{
+				name: "ANSIBLE_PASSWORD"
+				valueFrom: {
+					secretKeyRef: {
+						name: parameter.authConfig.basicAuthRef
+						key: "password"
+					}
+				}
+			}
+		},
+		if parameter.env != _|_ for e in parameter.env {
+			e
+		},
+	]
 
 	parameter: {
 		// +usage=Specify the labels in the workload
@@ -307,8 +339,14 @@ template: {
 		// +usage=Add extra arguments to ansible-playbook command
 		extraArguments?: [...string]
 
-		// +usage=Secret contain SSH private key for remote VMs
-		sshKeyRef: string
+		// +usage=Authentication for Ansible used to connect to remote VMs 
+		authConfig: {
+			// +usage=Secret contain SSH private key for remote VMs. Private SSH Key will take over Basic (username/password) authentication.
+			sshKeyRef?: string
+
+			// +usage=Secret contain username and password for remote VMs
+			basicAuthRef?: string
+		}
 
 		// +usage=Ansible collection requirements file
 		ansibleCollections?: string
