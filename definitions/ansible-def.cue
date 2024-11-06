@@ -166,11 +166,11 @@ template: {
 							name: "ansible-source"
 							emptyDir: {}
 						},
-						if parameter.sshKeyRef != _|_ {
+						if parameter.authConfig.sshKeyRef != _|_ {
 							{
 								name: "sshkey"
 								secret: {
-									secretName: parameter.sshKeyRef
+									secretName: parameter.authConfig.sshKeyRef
 								}
 							}
 						},
@@ -185,10 +185,14 @@ template: {
 		"\(parameter.sourcePlaybook)",
 		"-i \(parameter.sourceInventory)",
 		if parameter.authConfig.sshKeyRef != _|_ {
-			"--private-key /workspace/ansible/ssh-privatekey"
+			if parameter.authConfig.sshKeyRef  != "" {
+				"--private-key /workspace/ansible/ssh-privatekey"
+			}
 		},
-		if parameter.authConfig.basicAuthRef != _|_ {
-			"-u $ANSIBLE_USER --extra-vars ansible_password=$ANSIBLE_PASSWORD"
+		if parameter.authConfig.sshKeyRef == _|_ && parameter.authConfig.basicAuthRef != _|_ {
+			if parameter.authConfig.basicAuthRef != "" {
+				"-u $ANSIBLE_USER --extra-vars ansible_password=$ANSIBLE_PASSWORD"
+			}
 		},
 	]
 
@@ -199,8 +203,10 @@ template: {
 
 	_setupCommands: [
 		strings.Join([
-			if parameter.sshKeyRef != _|_ {
-				"base64 -d /workspace/sshkey/ssh-privatekey-base64 > /workspace/ansible/ssh-privatekey && chmod 0400 /workspace/ansible/ssh-privatekey"
+			if parameter.authConfig.sshKeyRef != _|_ {
+				if parameter.authConfig.sshKeyRef != "" {
+					"base64 -d /workspace/sshkey/ssh-privatekey-base64 > /workspace/ansible/ssh-privatekey && chmod 0400 /workspace/ansible/ssh-privatekey"
+				}
 			},
 			if parameter.ansibleCollections != _|_ {
 				"if [ -f \(parameter.ansibleCollections) ]; then ansible-galaxy collection install -r \(parameter.ansibleCollections); fi"
@@ -245,24 +251,28 @@ template: {
 	}
 
 	_ansibleContainerEnv: [
-		if parameter.authConfig.basicAuthRef != _|_ {
-			{
-				name: "ANSIBLE_USER"
-				valueFrom: {
-					secretKeyRef: {
-						name: parameter.authConfig.basicAuthRef
-						key: "username"
+		if parameter.authConfig.sshKeyRef == _|_ && parameter.authConfig.basicAuthRef != _|_ {
+			if parameter.authConfig.basicAuthRef != "" {
+				{
+					name: "ANSIBLE_USER"
+					valueFrom: {
+						secretKeyRef: {
+							name: parameter.authConfig.basicAuthRef
+							key: "username"
+						}
 					}
 				}
 			}
 		},
-		if parameter.authConfig.basicAuthRef != _|_ {
-			{
-				name: "ANSIBLE_PASSWORD"
-				valueFrom: {
-					secretKeyRef: {
-						name: parameter.authConfig.basicAuthRef
-						key: "password"
+		if parameter.authConfig.sshKeyRef == _|_ && parameter.authConfig.basicAuthRef != _|_ {
+			if parameter.authConfig.basicAuthRef != "" {
+				{
+					name: "ANSIBLE_PASSWORD"
+					valueFrom: {
+						secretKeyRef: {
+							name: parameter.authConfig.basicAuthRef
+							key: "password"
+						}
 					}
 				}
 			}
