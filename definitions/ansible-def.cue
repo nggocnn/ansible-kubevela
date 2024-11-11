@@ -122,7 +122,7 @@ template: {
 					}]
 					initContainers: [{
 						name:  "git-clone"
-						image: "push-hcm-docker.fsoft.com.vn/fep/alpine/git:latest"
+						image: "alpine/git:latest"
 
 						if parameter.imagePullPolicy != _|_ {
 							imagePullPolicy: parameter.imagePullPolicy
