@@ -66,7 +66,7 @@ template: {
 					restartPolicy: *parameter.restartPolicy | "Never"
 					containers: [{
 						name:  context.name
-						image: "nggocnn/ansible-playbook:v0.1"
+						image: "nggocnn/ansible-playbook:v0.2"
 
 						if parameter.imagePullPolicy != _|_ {
 							imagePullPolicy: parameter.imagePullPolicy
@@ -111,16 +111,18 @@ template: {
 								mountPath: "/workspace/ansible"
 							},
 							if parameter.authConfig.sshKeyRef != _|_ {
-								{
-									name:      "sshkey"
-									mountPath: "/workspace/sshkey"
+								if parameter.authConfig.sshKeyRef != "" {
+									{
+										name:      "sshkey"
+										mountPath: "/workspace/sshkey"
+									}
 								}
 							},
 						]
 					}]
 					initContainers: [{
 						name:  "git-clone"
-						image: "alpine/git:latest"
+						image: "push-hcm-docker.fsoft.com.vn/fep/alpine/git:latest"
 
 						if parameter.imagePullPolicy != _|_ {
 							imagePullPolicy: parameter.imagePullPolicy
@@ -167,10 +169,12 @@ template: {
 							emptyDir: {}
 						},
 						if parameter.authConfig.sshKeyRef != _|_ {
-							{
-								name: "sshkey"
-								secret: {
-									secretName: parameter.authConfig.sshKeyRef
+							if parameter.authConfig.sshKeyRef != "" {
+								{
+									name: "sshkey"
+									secret: {
+										secretName: parameter.authConfig.sshKeyRef
+									}
 								}
 							}
 						},
@@ -205,7 +209,7 @@ template: {
 		strings.Join([
 			if parameter.authConfig.sshKeyRef != _|_ {
 				if parameter.authConfig.sshKeyRef != "" {
-					"base64 -d /workspace/sshkey/ssh-privatekey-base64 > /workspace/ansible/ssh-privatekey && chmod 0400 /workspace/ansible/ssh-privatekey"
+						"base64 -d /workspace/sshkey/ssh-privatekey-base64 > /workspace/ansible/ssh-privatekey && chmod 0400 /workspace/ansible/ssh-privatekey"
 				}
 			},
 			if parameter.ansibleCollections != _|_ {
