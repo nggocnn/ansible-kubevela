@@ -255,6 +255,14 @@ template: {
 	}
 
 	_ansibleContainerEnv: [
+		// Common environment variables from Kubevela application's runtime context can be use in Ansible template
+		{
+			name: "APP_NAME" // The app name corresponding to the current instance of the application
+			value: context.appName
+		},
+
+		// Environment variables refer to secret from **parameter.authConfig.basicAuthRef**
+		// to use Basic Authentication option to connect to remote host (SSH - Linux Hosts, WinRM - Windows Hosts)
 		if parameter.authConfig.sshKeyRef == _|_ && parameter.authConfig.basicAuthRef != _|_ {
 			if parameter.authConfig.basicAuthRef != "" {
 				{
@@ -281,6 +289,8 @@ template: {
 				}
 			}
 		},
+
+		// Other environment variables define for this component
 		if parameter.env != _|_ for e in parameter.env {
 			e
 		},
