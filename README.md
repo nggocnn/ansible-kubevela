@@ -131,6 +131,7 @@ spec:
 | `memory` | Memory resource limit | string | - | `"1Gi"` |
 | `restartPolicy` | Job restart policy | string | `"Never"` | `"OnFailure"` |
 | `imagePullPolicy` | Image pull policy | string | `"IfNotPresent"` | `"Always"` |
+| `imagePullSecrets` | Image pull secret names applied at pod spec level | array | - | `["regcred"]` |
 
 ### Authentication Configuration
 
@@ -172,6 +173,8 @@ spec:
     username: "ansible-user"
     password: "secure-password"
 ```
+
+`authentication` config renders a Kubernetes `Secret` with `username` and `password` keys.
 
 ## Environment Variables
 

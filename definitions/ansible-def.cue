@@ -64,20 +64,19 @@ template: {
 				}
 				spec: {
 					restartPolicy: *parameter.restartPolicy | "Never"
+					if parameter.imagePullSecrets != _|_ {
+						imagePullSecrets: [
+							for secret in parameter.imagePullSecrets {
+								name: secret
+							},
+						]
+					}
 					containers: [{
 						name:  context.name
 						image: "nggocnn/ansible-playbook:v0.2"
 
 						if parameter.imagePullPolicy != _|_ {
 							imagePullPolicy: parameter.imagePullPolicy
-						}
-
-						if parameter.imagePullSecrets != _|_ {
-							imagePullSecrets: [
-								for secret in parameter.imagePullSecrets {
-									name: secret
-								},
-							]
 						}
 
 						command: ["/bin/sh", "-c"]
@@ -126,14 +125,6 @@ template: {
 
 						if parameter.imagePullPolicy != _|_ {
 							imagePullPolicy: parameter.imagePullPolicy
-						}
-
-						if parameter.imagePullSecrets != _|_ {
-							imagePullSecrets: [
-								for secret in parameter.imagePullSecrets {
-									name: secret
-								},
-							]
 						}
 
 						command: ["/bin/sh", "-c"]
