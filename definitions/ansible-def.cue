@@ -73,7 +73,7 @@ template: {
 					}
 					containers: [{
 						name:  context.name
-						image: "nggocnn/ansible-playbook:v0.2"
+						image: parameter.image
 
 						if parameter.imagePullPolicy != _|_ {
 							imagePullPolicy: parameter.imagePullPolicy
@@ -288,6 +288,9 @@ template: {
 	]
 
 	parameter: {
+		// +usage=Container image used to run ansible-playbook
+		image: string
+
 		// +usage=Specify the labels in the workload
 		labels?: [string]: string
 

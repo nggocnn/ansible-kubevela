@@ -180,6 +180,14 @@
               jsonKey: key
               uiType: SecretKeySelect
 - sort: 107
+  label: Image
+  description: Container image used to run ansible-playbook
+  validate:
+    required: true
+    immutable: false
+  jsonKey: image
+  uiType: Input
+- sort: 108
   label: ImagePullPolicy
   description: Specify image pull policy for your service
   validate:
@@ -194,14 +202,14 @@
     immutable: false
   jsonKey: imagePullPolicy
   uiType: Select
-- sort: 108
+- sort: 109
   label: ImagePullSecrets
   description: Specify image pull secrets for your service
   validate:
     immutable: false
   jsonKey: imagePullSecrets
   uiType: Strings
-- sort: 109
+- sort: 110
   label: Labels
   description: Specify the labels in the workload
   validate:
@@ -217,7 +225,7 @@
     jsonKey: ''
     uiType: Input
   additional: true
-- sort: 110
+- sort: 111
   label: Annotations
   description: Specify the annotations in the workload
   validate:
@@ -233,7 +241,7 @@
     jsonKey: ''
     uiType: Input
   additional: true
-- sort: 111
+- sort: 112
   label: Cpu
   description: >-
     Number of CPU units for the service, like `0.5` (0.5 CPU core), `1` (1 CPU
@@ -242,14 +250,14 @@
     immutable: false
   jsonKey: cpu
   uiType: Input
-- sort: 112
+- sort: 113
   label: Memory
   description: Specifies the attributes of the memory resource required for the container.
   validate:
     immutable: false
   jsonKey: memory
   uiType: Input
-- sort: 113
+- sort: 114
   label: RestartPolicy
   description: >-
     Define the job restart policy, the value can only be Never or OnFailure. By
