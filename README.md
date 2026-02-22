@@ -34,6 +34,7 @@ spec:
   - name: deploy-servers
     type: ansible
     properties:
+      image: "your-registry/ansible-playbook:v0.2"
       git:
         url: "https://github.com/your-org/ansible-playbooks.git"
         branch: "main"
@@ -82,6 +83,7 @@ spec:
   - name: provision-infrastructure
     type: ansible
     properties:
+      image: "your-registry/ansible-playbook:v0.2"
       git:
         url: "https://github.com/your-org/infrastructure-playbooks.git"
         tag: "v1.2.0"
@@ -113,6 +115,7 @@ spec:
 
 | Parameter | Description | Type | Example |
 |-----------|-------------|------|---------|
+| `image` | Container image used to run ansible-playbook | string | `"your-registry/ansible-playbook:v0.2"` |
 | `git.url` | Git repository URL containing Ansible playbooks | string | `"https://github.com/user/repo.git"` |
 | `authConfig` | Authentication configuration for target hosts | object | See authentication section |
 
@@ -217,12 +220,35 @@ vela status <app-name>
 
 ## Container Image
 
-This addon uses the `nggocnn/ansible-playbook:v0.2` container image, which includes:
+Build and publish an image from this repository and set it via the component `properties.image`.
+
+A recommended image should include:
 
 - Python 3.10
 - Ansible 10.0.1
 - PyWinRM 0.5.0 (for Windows host support)
 - SSH client and sshpass utilities
+
+### Build Custom Image
+
+```bash
+IMAGE_REPO="your-registry/ansible-playbook"
+IMAGE_TAG="v0.2" # or any tag: v1.0.0, latest, 2026-02-22, git-<sha>
+
+docker build -t "${IMAGE_REPO}:${IMAGE_TAG}" \
+  --build-arg ANSIBLE_VERSION=10.0.1 \
+  --build-arg PYWINRM_VERSION=0.5.0 \
+  .
+
+docker push "${IMAGE_REPO}:${IMAGE_TAG}"
+```
+
+Use the published image in your application:
+
+```yaml
+properties:
+  image: "your-registry/ansible-playbook:<your-tag>"
+```
 
 ## Contributing
 
